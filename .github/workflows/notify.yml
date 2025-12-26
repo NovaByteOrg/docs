@@ -1,0 +1,17 @@
+name: notify.yml
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - '**/*.mdx'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger revalidation
+        run: |
+          curl -X POST https://your-site.com/api/revalidate \
+            -H "Authorization: Bearer ${{ secrets.WEBHOOK_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{"product": "your-product"}'
