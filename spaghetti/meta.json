@@ -1,5 +1,6 @@
 {
     "title": "Spaghetti",
     "description": "Easy to use annotation based yaml configuration library",
+    "icon": "Shredder",
     "root": true
 }
