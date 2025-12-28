@@ -1,9 +1,11 @@
-name: notify.yml
+name: Revalidate Documentation
 on:
   push:
     branches: [main, master]
     paths:
       - '**/*.mdx'
+      - '**/*.md'
+      - '**/meta.json'
 
 jobs:
   notify:
@@ -11,7 +13,30 @@ jobs:
     steps:
       - name: Trigger revalidation
         run: |
-          curl -X POST https://your-site.com/api/revalidate \
-            -H "Authorization: Bearer ${{ secrets.WEBHOOK_SECRET }}" \
+          curl -X POST ${{ secrets.REVALIDATE_URL }}/api/revalidate \
+            -H "Authorization: Bearer ${{ secrets.REVALIDATE_SECRET }}" \
             -H "Content-Type: application/json" \
-            -d '{"product": "your-product"}'
+            -d '{
+              "repository": "${{ github.repository }}",
+              "branch": "${{ github.ref_name }}",
+              "commit": "${{ github.sha }}"
+            }' \
+            --fail-with-body
+
+      - name: Revalidation success
+        if: success()
+        run: |
+          echo "✅ Documentation revalidated successfully"
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+
+      - name: Revalidation failed
+        if: failure()
+        run: |
+          echo "❌ Failed to trigger documentation revalidation"
+          echo "Please check:"
+          echo "  - REVALIDATE_URL is set correctly: ${{ secrets.REVALIDATE_URL }}"
+          echo "  - REVALIDATE_SECRET is configured"
+          echo "  - Your site is accessible and the /api/revalidate endpoint exists"
+          exit 1
